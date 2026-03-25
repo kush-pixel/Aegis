@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.next/
+*.zip
+.env
+*.pem
+*.key
+.DS_Store
+coverage/
+.env.local

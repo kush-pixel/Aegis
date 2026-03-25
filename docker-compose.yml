@@ -1,0 +1,42 @@
+services:
+  medplum-postgres:
+    image: postgres:14
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: medplum
+      POSTGRES_USER: medplum
+      POSTGRES_PASSWORD: medplum
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medplum"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  medplum-server:
+    image: medplum/medplum-server:latest
+    ports:
+      - "8103:8103"
+    environment:
+      - MEDPLUM_DATABASE_HOST=medplum-postgres
+      - MEDPLUM_DATABASE_PORT=5432
+      - MEDPLUM_DATABASE_DBNAME=medplum
+      - MEDPLUM_DATABASE_USERNAME=medplum
+      - MEDPLUM_DATABASE_PASSWORD=medplum
+    depends_on:
+      medplum-postgres:
+        condition: service_healthy
+
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    ports:
+      - "8000:8000"
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
+
+  localstack:
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"
+    environment:
+      SERVICES: sns,s3,sqs,events
+      DEFAULT_REGION: us-east-1

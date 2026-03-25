@@ -1,0 +1,26 @@
+{
+  "name": "sentinel-care",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "lambdas/*",
+    "dashboard",
+    "infra",
+    "scripts"
+  ],
+  "scripts": {
+    "test": "npm run test --workspaces --if-present",
+    "test:schemas": "cd packages/schemas && npm test",
+    "test:risk-scorer": "cd packages/risk-scorer && npm test",
+    "test:triage-engine": "cd packages/triage-engine && npm test",
+    "verify:local": "node scripts/src/verify-local.js",
+    "build": "npm run build --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "prettier": "^3.2.0"
+  }
+}
