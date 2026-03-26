@@ -1,5 +1,5 @@
 {
-  "name": "sentinel-care",
+  "name": "aegis",
   "private": true,
   "workspaces": [
     "packages/*",
