@@ -13,6 +13,10 @@
     "test:schemas": "cd packages/schemas && npm test",
     "test:risk-scorer": "cd packages/risk-scorer && npm test",
     "test:triage-engine": "cd packages/triage-engine && npm test",
+    "test:bedrock-client": "cd packages/bedrock-client && npm test",
+    "test:sdoh": "cd packages/sdoh && npm test",
+    "test:audit": "cd packages/audit && npm test",
+    "test:validation": "cd packages/validation && npm test",
     "verify:local": "node scripts/src/verify-local.js",
     "build": "npm run build --workspaces --if-present"
   },
