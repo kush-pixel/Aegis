@@ -1,0 +1,17 @@
+{
+  "port": 8103,
+  "baseUrl": "http://localhost:8103/",
+  "database": {
+    "host": "medplum-postgres",
+    "port": 5432,
+    "dbname": "medplum",
+    "username": "medplum",
+    "password": "medplum"
+  },
+  "redis": {
+    "host": "medplum-redis",
+    "port": 6379
+  },
+  "binaryStorage": "binary:/var/medplum/binary",
+  "storageBaseUrl": "http://localhost:8103/binary/"
+}

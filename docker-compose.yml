@@ -13,18 +13,26 @@ services:
       timeout: 5s
       retries: 10
 
+  medplum-redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   medplum-server:
     image: medplum/medplum-server:latest
     ports:
       - "8103:8103"
-    environment:
-      - MEDPLUM_DATABASE_HOST=medplum-postgres
-      - MEDPLUM_DATABASE_PORT=5432
-      - MEDPLUM_DATABASE_DBNAME=medplum
-      - MEDPLUM_DATABASE_USERNAME=medplum
-      - MEDPLUM_DATABASE_PASSWORD=medplum
+    volumes:
+      - ./medplum.config.json:/usr/src/medplum/medplum.config.json
     depends_on:
       medplum-postgres:
+        condition: service_healthy
+      medplum-redis:
         condition: service_healthy
 
   dynamodb-local:
