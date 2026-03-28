@@ -25,6 +25,9 @@ export const CallResultSchema = z.object({
   call_timestamp: z.string().optional(),
   nurse_acknowledged: z.boolean().optional(),
   nurse_acknowledged_at: z.string().optional(),
+  // Read-back documentation — Joint Commission requirement
+  read_back: z.string().optional(),
+  read_back_documented_at: z.string().optional(),
 });
 
 export type CallResult = z.infer<typeof CallResultSchema>;

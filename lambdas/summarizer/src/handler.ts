@@ -128,6 +128,19 @@ export async function summarizeCall(
     }),
   );
 
+  if (callResult.triage_status === 'GREEN') {
+    await dynamo.send(
+      new UpdateCommand({
+        TableName:                 RESULTS_TABLE,
+        Key:                       { call_id },
+        UpdateExpression:          'SET read_back = :rb',
+        ExpressionAttributeValues: {
+          ':rb': 'No callback required — patient stable and recovering as expected.',
+        },
+      }),
+    );
+  }
+
   auditLog({
     action:   'summary_generated',
     actor:    'summarizer',
