@@ -21,6 +21,10 @@ export const CallResultSchema = z.object({
   sms_sent_at: z.string().optional(),
   sms_question_index: z.number().int().min(0).optional(),
   sms_protocol_id: z.string().optional(),
+  // Dashboard fields — GSI sort key and nurse acknowledgement
+  call_timestamp: z.string().optional(),
+  nurse_acknowledged: z.boolean().optional(),
+  nurse_acknowledged_at: z.string().optional(),
 });
 
 export type CallResult = z.infer<typeof CallResultSchema>;

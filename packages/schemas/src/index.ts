@@ -45,3 +45,6 @@ export type {
 
 export { CallResultSchema } from './call-result';
 export type { CallResult } from './call-result';
+
+export { ProtocolReviewSchema } from './protocol-review';
+export type { ProtocolReview } from './protocol-review';
