@@ -1,0 +1,23 @@
+{
+  "name": "@aegis/triage-engine-lambda",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "test": "jest --coverage"
+  },
+  "dependencies": {
+    "@aegis/audit": "*",
+    "@aegis/risk-scorer": "*",
+    "@aegis/schemas": "*",
+    "@aegis/triage-engine": "*",
+    "@aws-sdk/client-dynamodb": "^3.500.0",
+    "@aws-sdk/lib-dynamodb": "^3.500.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.0.0"
+  }
+}
