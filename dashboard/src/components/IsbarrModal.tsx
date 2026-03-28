@@ -38,7 +38,11 @@ const IsbarrModal: React.FC<IsbarrModalProps> = ({ isOpen, onClose, isbarr }) =>
           {sections.map(section => (
             <div key={section.title}>
               <p className="text-xs uppercase text-gray-400 font-bold tracking-wider mb-1">{section.title}</p>
-              <p className="text-gray-100 font-sans">{section.content}</p>
+              {section.content ? (
+                <p className="text-gray-100 font-sans">{section.content}</p>
+              ) : (
+                <p className="text-gray-500 font-sans italic">Pending nurse callback</p>
+              )}
             </div>
           ))}
         </div>

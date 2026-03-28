@@ -60,7 +60,7 @@ const mockIsbarr: Isbarr = {
   background: 'Discharged 3 days ago following acute decompensated heart failure. On Lasix 40mg daily and Lisinopril.',
   assessment: 'Weight gain exceeds 3 lb threshold. Shortness of breath at rest indicates possible fluid overload. HIGH composite risk.',
   recommendation: 'Urgent clinical review required within 2 hours. Contact on-call cardiologist. Consider same-day ED evaluation.',
-  read_back: 'Understood. Calling on-call cardiologist now and advising patient to go to ED if symptoms worsen before callback.',
+  read_back: '',
 };
 
 const mockCallResults: CallResult[] = [
@@ -86,7 +86,7 @@ const mockCallResults: CallResult[] = [
             background: 'Discharged 5 days ago following COPD exacerbation. On Spiriva and Prednisone taper.',
             assessment: 'Increased rescue inhaler use above threshold. Symptom progression noted. MODERATE composite risk.',
             recommendation: 'Nurse callback within 24 hours. Confirm Prednisone taper adherence. Advise patient to call 911 if breathlessness worsens overnight.',
-            read_back: 'Understood. Will call patient tomorrow morning and have advised patient on when to call emergency services.',
+            read_back: '',
         },
         created_at: '2026-03-23T00:00:00.000Z',
     },
@@ -102,7 +102,7 @@ const mockCallResults: CallResult[] = [
             background: 'Discharged 4 days ago following diabetic ketoacidosis episode. On insulin glargine and metformin.',
             assessment: 'No concerning symptoms reported. Medication adherence confirmed. Blood glucose within target range. LOW composite risk.',
             recommendation: 'Patient recovering as expected. Continue current insulin regimen. Schedule routine 7-day follow-up call.',
-            read_back: 'Understood. Continuing medications as prescribed and will call back if blood sugar goes above 250 or below 70.',
+            read_back: '',
         },
         created_at: '2026-03-24T00:00:00.000Z',
     }
