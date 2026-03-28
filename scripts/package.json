@@ -4,9 +4,17 @@
   "private": true,
   "scripts": {
     "test": "jest --coverage",
-    "verify:pipeline": "jest --testPathPattern=pipeline"
+    "verify:pipeline": "jest --testPathPattern=pipeline",
+    "create-local-tables": "ts-node src/create-local-tables.ts",
+    "morning-start": "ts-node src/morning-start.ts",
+    "health-check": "ts-node src/health-check.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.500.0",
+    "@aws-sdk/lib-dynamodb": "^3.500.0",
+    "@aws-sdk/client-lambda": "^3.500.0",
+    "@medplum/core": "^3.3.0",
+    "node-fetch": "^3.3.0",
     "@aegis/bedrock-client": "*",
     "@aegis/risk-scorer": "*",
     "@aegis/triage-engine": "*",

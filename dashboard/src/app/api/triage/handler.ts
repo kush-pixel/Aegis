@@ -26,11 +26,15 @@ export async function triageHandler(
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  if (process.env['AUTH_BYPASS'] === 'true' && !process.env['DYNAMO_ENDPOINT']) {
+    return Response.json({ data: [] });
+  }
+
   const url       = new URL(request.url);
   const patientId = url.searchParams.get('patient_id');
 
-  let items: unknown[];
   try {
+    let items: unknown[];
     if (patientId !== null && patientId.trim().length > 0) {
       // Path A: query by patient_id
       const result = await deps.dynamo.send(
@@ -56,10 +60,9 @@ export async function triageHandler(
       );
       items = result.Items ?? [];
     }
+    const data = items.map((item) => CallResultSchema.parse(item));
+    return Response.json({ data });
   } catch {
     return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
-
-  const data = items.map((item) => CallResultSchema.parse(item));
-  return Response.json({ data });
 }

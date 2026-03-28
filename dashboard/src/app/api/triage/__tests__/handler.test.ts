@@ -298,4 +298,36 @@ describe('triageHandler', () => {
       expect(arg.input['ScanIndexForward']).toBe(false);
     });
   });
+
+  // -------------------------------------------------------------------------
+  // AUTH_BYPASS early-return (line 29–31)
+  // -------------------------------------------------------------------------
+
+  describe('AUTH_BYPASS early-return', () => {
+    const origDynamo = process.env['DYNAMO_ENDPOINT'];
+
+    beforeEach(() => {
+      delete process.env['DYNAMO_ENDPOINT'];
+      process.env['AUTH_BYPASS'] = 'true';
+    });
+
+    afterEach(() => {
+      delete process.env['AUTH_BYPASS'];
+      if (origDynamo !== undefined) {
+        process.env['DYNAMO_ENDPOINT'] = origDynamo;
+      }
+    });
+
+    it('returns { data: [] } without querying DynamoDB when AUTH_BYPASS is true and DYNAMO_ENDPOINT is unset', async () => {
+      const res = await triageHandler(
+        makeRequest('http://localhost/api/triage'),
+        makeDeps(),
+      );
+
+      expect(res.status).toBe(200);
+      const body = await res.json() as { data: unknown[] };
+      expect(body.data).toEqual([]);
+      expect(dynamoSend).not.toHaveBeenCalled();
+    });
+  });
 });
