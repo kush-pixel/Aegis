@@ -9,7 +9,7 @@ export const CallResultSchema = z.object({
   variables: z.record(z.string(), ExtractionResultSchema),
   sdoh_responses: SdohScreeningSchema,
   triage_status: z.enum(['RED', 'YELLOW', 'GREEN', 'INCOMPLETE']),
-  isbarr_summary: IsbarrSchema,
+  isbarr_summary: IsbarrSchema.optional(),
   created_at: z.string().min(1),
 });
 

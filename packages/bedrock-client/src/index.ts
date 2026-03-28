@@ -23,6 +23,8 @@ export {
   KBResultSchema,
 } from './types';
 
+export { isMockMode, getMockProtocol, getMockExtractionResults, getMockSummary, getMockKBResults } from './mock-data';
+
 export type {
   GenerateProtocolInput,
   ExtractVariablesInput,
