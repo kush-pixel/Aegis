@@ -19,8 +19,12 @@ describe('CallResultSchema — SMS fields', () => {
       expect(() => CallResultSchema.parse({ ...baseValid, call_status: 'COMPLETE' })).not.toThrow();
     });
 
+    it('accepts FAILED', () => {
+      expect(() => CallResultSchema.parse({ ...baseValid, call_status: 'FAILED' })).not.toThrow();
+    });
+
     it('rejects unknown status', () => {
-      expect(() => CallResultSchema.parse({ ...baseValid, call_status: 'FAILED' })).toThrow();
+      expect(() => CallResultSchema.parse({ ...baseValid, call_status: 'BOUNCED' })).toThrow();
     });
 
     it('is valid when absent', () => {

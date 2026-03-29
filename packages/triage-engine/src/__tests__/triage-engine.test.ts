@@ -106,12 +106,12 @@ describe('runTriage', () => {
     expect(veryHighResult).toEqual({ status: 'RED', broken_rules: ['weight_gain'] });
   });
 
-  it('returns GREEN with empty broken_rules when rules array is empty', () => {
+  it('returns UNKNOWN_CONDITION with empty broken_rules when rules array is empty', () => {
     const result = runTriage({
       variables: {},
       rules: [],
       compositeRisk: makeCompositeRisk('VERY_HIGH'),
     });
-    expect(result).toEqual({ status: 'GREEN', broken_rules: [] });
+    expect(result).toEqual({ status: 'UNKNOWN_CONDITION', broken_rules: [] });
   });
 });

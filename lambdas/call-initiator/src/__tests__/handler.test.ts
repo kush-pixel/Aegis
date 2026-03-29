@@ -125,7 +125,7 @@ describe('initiateCall', () => {
 
     await initiateCall(validEvent, deps);
 
-    const putArg = dynamoSend.mock.calls[1][0];
+    const putArg = dynamoSend.mock.calls[2][0];
     const item = putArg.input.Item;
     expect(item.call_id).toBe('CALL-test123');
     expect(item.patient_id).toBe('patient-abc');
@@ -317,7 +317,7 @@ describe('initiateCall', () => {
     );
 
     // PutCommand was already sent before Connect call
-    expect(dynamoSend).toHaveBeenCalledTimes(2);
+    expect(dynamoSend).toHaveBeenCalledTimes(3);
     // First audit log (call_result_created) was emitted before Connect
     expect(auditLog).toHaveBeenCalledTimes(1);
     expect(auditLog).toHaveBeenCalledWith(

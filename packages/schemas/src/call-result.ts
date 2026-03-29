@@ -8,7 +8,7 @@ export const CallResultSchema = z.object({
   patient_id: z.string().min(1),
   variables: z.record(z.string(), ExtractionResultSchema),
   sdoh_responses: SdohScreeningSchema,
-  triage_status: z.enum(['RED', 'YELLOW', 'GREEN', 'INCOMPLETE']),
+  triage_status: z.enum(['RED', 'YELLOW', 'GREEN', 'INCOMPLETE', 'UNKNOWN_CONDITION']),
   isbarr_summary: IsbarrSchema.optional(),
   created_at: z.string().min(1),
   // Triage result fields — written by triage-engine lambda after deterministic evaluation
@@ -16,7 +16,7 @@ export const CallResultSchema = z.object({
   weighted_score: z.number().min(0).max(100).optional(),
   triage_completed_at: z.string().optional(),
   // SMS fallback fields — GSI partition key call_status-created_at-index on CallResults table
-  call_status: z.enum(['INCOMPLETE', 'COMPLETE']).optional(),
+  call_status: z.enum(['IN_PROGRESS', 'INCOMPLETE', 'COMPLETE', 'FAILED']).optional(),
   sms_sent: z.boolean().optional(),
   sms_sent_at: z.string().optional(),
   sms_question_index: z.number().int().min(0).optional(),

@@ -28,5 +28,10 @@ export const handler = async (event: ScheduledEvent): Promise<SmsFallbackResult>
     connectInstanceId: process.env['CONNECT_INSTANCE_ID'] ?? '',
     connectContactFlowId: process.env['CONNECT_CONTACT_FLOW_ID'] ?? '',
     connectSourcePhoneNumber: process.env['CONNECT_SOURCE_PHONE_NUMBER'] ?? '',
+    patientsTable: process.env['DYNAMO_TABLE_PATIENTS'] ?? 'PatientProfiles',
+    appsyncEndpoint: process.env['APPSYNC_ENDPOINT'] ?? '',
+    appsyncApiKey: process.env['APPSYNC_API_KEY'] ?? '',
+    fetchFn: fetch,
+    cleanupEnabled: true,
   });
 };

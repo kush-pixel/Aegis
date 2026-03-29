@@ -52,7 +52,7 @@ const validCallResult = {
     transportation_barrier: false,
     z_codes: [],
   },
-  triage_status: 'INCOMPLETE' as const,
+  triage_status: 'RED' as const,
   created_at: '2026-03-27T00:00:00.000Z',
 };
 

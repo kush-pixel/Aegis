@@ -227,10 +227,56 @@ async function handleClinicalTurn(
   const confident = result !== undefined && result.confidence >= CONFIDENCE_THRESHOLD;
 
   if (!confident) {
-    // Repeat same question — session attrs unchanged
+    const retryCountMap = JSON.parse(sessionAttrs['retryCountJson'] ?? '{}') as Record<string, number>;
+    const currentRetryCount = retryCountMap[currentQuestion.variable_name] ?? 0;
+    const MAX_RETRIES = 3;
+    const newCount = currentRetryCount + 1;
+    const updatedRetryMap = { ...retryCountMap, [currentQuestion.variable_name]: newCount };
+
+    if (newCount >= MAX_RETRIES) {
+      // Exhausted retries — accept empty-string answer and advance.
+      // Empty string signals "no valid answer obtained" to the triage engine.
+      const exhaustedResult: ExtractionResult = {
+        value:          '',
+        confidence:     0.0,
+        raw_transcript: transcript,
+      };
+      const updatedVariables: Record<string, ExtractionResult> = {
+        ...variables,
+        [currentQuestion.variable_name]: exhaustedResult,
+      };
+      const nextClinicalIndex = clinicalIndex + 1;
+
+      if (nextClinicalIndex < sortedQuestions.length) {
+        const nextQuestion = sortedQuestions[nextClinicalIndex];
+        return buildElicitSlot(`${fillerPhrase}${nextQuestion.text}`, {
+          ...sessionAttrs,
+          clinicalIndex:  String(nextClinicalIndex),
+          variablesJson:  JSON.stringify(updatedVariables),
+          retryCountJson: JSON.stringify(updatedRetryMap),
+        });
+      }
+
+      // Transition to SDOH phase
+      const firstSdohQuestion = PRAPARE_QUESTIONS[0];
+      return buildElicitSlot(
+        `${fillerPhrase}I have just a couple more brief questions. ${firstSdohQuestion.text}`,
+        {
+          ...sessionAttrs,
+          phase:              'sdoh',
+          clinicalIndex:      String(clinicalIndex),
+          sdohIndex:          '0',
+          variablesJson:      JSON.stringify(updatedVariables),
+          sdohResponsesJson:  JSON.stringify(sdohPartial),
+          retryCountJson:     JSON.stringify(updatedRetryMap),
+        },
+      );
+    }
+
+    // Under retry limit — repeat question with incremented count
     return buildElicitSlot(
       `${fillerPhrase}I didn't quite catch that. ${currentQuestion.text}`,
-      { ...sessionAttrs },
+      { ...sessionAttrs, retryCountJson: JSON.stringify(updatedRetryMap) },
     );
   }
 

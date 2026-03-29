@@ -27,5 +27,5 @@ export const handler = async (event: CarePlannerEvent): Promise<unknown> => {
     );
   }
 
-  return generateCarePlan(event, { dynamo, bedrock, kbClient, fhir });
+  return generateCarePlan(event, { dynamo, rulesCheckDynamo: dynamo, bedrock, kbClient, fhir });
 };

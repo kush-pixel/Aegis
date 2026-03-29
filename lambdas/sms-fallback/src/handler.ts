@@ -9,11 +9,27 @@ import {
   StartOutboundChatContactCommand,
   EndpointType,
 } from '@aws-sdk/client-connect';
-import { TriageProtocolSchema } from '@aegis/schemas';
+import { TriageProtocolSchema, PatientProfileSchema } from '@aegis/schemas';
 import { auditLog } from '@aegis/audit';
 
 // NOTE: sms-fallback queries CallResults using GSI call_status-created_at-index
 // (PK: call_status). This GSI must be provisioned in infra/DatabaseStack.
+
+const PUBLISH_UNREACHABLE_ALERT = `mutation PublishUnreachableAlert(
+  $callId: String!
+  $patientId: String!
+  $riskLevel: String!
+  $createdAt: String!
+) {
+  publishUnreachableAlert(
+    callId: $callId
+    patientId: $patientId
+    riskLevel: $riskLevel
+    createdAt: $createdAt
+  ) {
+    callId
+  }
+}`;
 
 export interface ScheduledEvent {
   source: string;
@@ -33,6 +49,11 @@ export interface SmsFallbackDeps {
   connectInstanceId: string;
   connectContactFlowId: string;
   connectSourcePhoneNumber: string;
+  patientsTable?: string;
+  appsyncEndpoint?: string;
+  appsyncApiKey?: string;
+  fetchFn?: (url: string, init: RequestInit) => Promise<Response>;
+  cleanupEnabled?: boolean;
 }
 
 export async function sendSmsFallback(
@@ -47,6 +68,10 @@ export async function sendSmsFallback(
     connectInstanceId,
     connectContactFlowId,
     connectSourcePhoneNumber,
+    patientsTable,
+    appsyncEndpoint,
+    appsyncApiKey,
+    fetchFn,
   } = deps;
 
   const cutoffTime = new Date(Date.now() - 30 * 60 * 1000).toISOString();
@@ -176,5 +201,105 @@ export async function sendSmsFallback(
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Second pass — escalate unreachable high-risk patients via AppSync
+  // ---------------------------------------------------------------------------
+
+  if (appsyncEndpoint && appsyncApiKey && fetchFn && patientsTable) {
+    const escalationCutoff = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
+
+    const failedQuery = await dynamo.send(
+      new QueryCommand({
+        TableName: resultsTable,
+        IndexName: 'call_status-created_at-index',
+        KeyConditionExpression: 'call_status = :failed',
+        ExpressionAttributeValues: { ':failed': 'FAILED' },
+      }),
+    );
+
+    const unreachable = (failedQuery.Items ?? []).filter(
+      (item) => item['sms_sent'] === true && item['created_at'] < escalationCutoff,
+    );
+
+    for (const item of unreachable) {
+      const callId = item['call_id'] as string;
+      const patientId = item['patient_id'] as string;
+      const createdAt = item['created_at'] as string;
+
+      try {
+        const patientResponse = await dynamo.send(
+          new GetCommand({
+            TableName: patientsTable,
+            Key: { patient_id: patientId },
+          }),
+        );
+
+        if (!patientResponse.Item) {
+          throw new Error(`PatientProfile not found: ${patientId}`);
+        }
+
+        const patient = PatientProfileSchema.parse(patientResponse.Item);
+
+        if (patient.composite_risk_score < 60) {
+          continue;
+        }
+
+        const variables = {
+          callId,
+          patientId,
+          riskLevel: patient.risk_level,
+          createdAt,
+        };
+
+        const response = await fetchFn(appsyncEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': appsyncApiKey,
+          },
+          body: JSON.stringify({ query: PUBLISH_UNREACHABLE_ALERT, variables }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`AppSync returned HTTP ${response.status}`);
+        }
+
+        auditLog({
+          action: 'unreachable_alert_published',
+          actor: 'sms-fallback',
+          resource: 'AppSync',
+          callId,
+          detail: `Published unreachable alert riskLevel=${patient.risk_level}`,
+        });
+      } catch (err) {
+        auditLog({
+          action: 'unreachable_alert_failed',
+          actor: 'sms-fallback',
+          resource: 'AppSync',
+          callId,
+          detail: `Failed to publish unreachable alert: ${(err as Error).message}`,
+        });
+        // Do not throw — continue to next record
+      }
+    }
+  }
+
+  await cleanupOrphanedProtocols(deps);
+
   return { processed, errors };
+}
+
+// TODO(CDK): Replace stub with real QueryCommand implementation once
+// created_at-index GSI is deployed to TriageProtocols in DatabaseStack.
+export async function cleanupOrphanedProtocols(deps: SmsFallbackDeps): Promise<void> {
+  if (deps.cleanupEnabled !== true) {
+    return;
+  }
+
+  auditLog({
+    action: 'orphaned_protocol_cleanup_skipped',
+    actor: 'sms-fallback',
+    resource: 'TriageProtocol',
+    detail: 'Cleanup requires created_at-index GSI on TriageProtocols — not yet deployed',
+  });
 }

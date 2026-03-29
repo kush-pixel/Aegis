@@ -1,4 +1,4 @@
-import { DynamoDBDocumentClient, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { ConnectClient, StartOutboundVoiceContactCommand } from '@aws-sdk/client-connect';
 import type { MedplumClient } from '@medplum/core';
 import { getPatient, getPatientConditions, mapToPatientProfile } from '@aegis/fhir-client';
@@ -63,19 +63,43 @@ export async function initiateCall(
   const conditions = await getPatientConditions(fhir, patient_id);
   const profile = mapToPatientProfile(patient, conditions);
 
+  // Prevent duplicate active calls for the same patient.
+  // Uses patient_id-call_timestamp-index GSI on CallResults table.
+  const activeCallsResult = await dynamo.send(
+    new QueryCommand({
+      TableName:                 RESULTS_TABLE,
+      IndexName:                 'patient_id-call_timestamp-index',
+      KeyConditionExpression:    'patient_id = :pid',
+      FilterExpression:          'triage_status = :incomplete OR call_status = :inprogress',
+      ExpressionAttributeValues: {
+        ':pid':        patient_id,
+        ':incomplete': 'INCOMPLETE',
+        ':inprogress': 'IN_PROGRESS',
+      },
+    }),
+  );
+
+  if ((activeCallsResult.Items ?? []).length > 0) {
+    throw new Error(
+      `Active call already exists for patient ${patient_id}. Complete or cancel it before placing a new call.`,
+    );
+  }
+
   const callId = generateCallId();
 
   const initialRecord = CallResultSchema.parse({
-    call_id: callId,
+    call_id:        callId,
     patient_id,
-    variables: {},
+    variables:      {},
     sdoh_responses: {
       medication_cost_barrier: false,
-      transportation_barrier: false,
-      z_codes: [],
+      transportation_barrier:  false,
+      z_codes:                 [],
     },
-    triage_status: 'INCOMPLETE',
-    created_at: new Date().toISOString(),
+    triage_status:  'INCOMPLETE',
+    call_status:    'IN_PROGRESS',
+    call_timestamp: new Date().toISOString(),
+    created_at:     new Date().toISOString(),
   });
 
   await dynamo.send(

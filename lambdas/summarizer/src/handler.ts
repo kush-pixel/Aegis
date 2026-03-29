@@ -39,6 +39,7 @@ export interface SummarizerResult {
   callId: string;
   summaryGenerated: boolean;
   regenerated: boolean;
+  skippedReason?: string;
 }
 
 export interface SummarizerDeps {
@@ -74,6 +75,10 @@ export async function summarizeCall(
   }
 
   const callResult = CallResultSchema.parse(callResultResponse.Item);
+
+  if (callResult.triage_status === 'INCOMPLETE') {
+    return { callId: call_id, summaryGenerated: false, regenerated: false, skippedReason: 'INCOMPLETE_TRIAGE' };
+  }
 
   const protocolResponse = await dynamo.send(
     new GetCommand({

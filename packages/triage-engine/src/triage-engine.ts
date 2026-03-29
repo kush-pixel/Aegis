@@ -1,7 +1,7 @@
 import type { ClinicalRule, ExtractionResult, CompositeRisk } from '@aegis/schemas';
 import { evaluateRule } from './rule-engine';
 
-export type TriageStatus = 'RED' | 'YELLOW' | 'GREEN' | 'INCOMPLETE';
+export type TriageStatus = 'RED' | 'YELLOW' | 'GREEN' | 'INCOMPLETE' | 'UNKNOWN_CONDITION';
 
 export interface TriageResult {
   status: TriageStatus;
@@ -17,6 +17,10 @@ export interface TriageInput {
 export function runTriage(input: TriageInput): TriageResult {
   const { variables, rules, compositeRisk } = input;
   const isVeryHighRisk = compositeRisk.risk_level === 'VERY_HIGH';
+
+  if (rules.length === 0) {
+    return { status: 'UNKNOWN_CONDITION', broken_rules: [] };
+  }
 
   const firedVariables = new Set<string>();
 
